@@ -1,5 +1,5 @@
 import SwiftUI
-import TomatoCore
+import MacInstallerCore
 
 struct FinishedView: View {
     @Environment(InstallerModel.self) private var model

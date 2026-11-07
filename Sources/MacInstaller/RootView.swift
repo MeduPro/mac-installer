@@ -1,5 +1,5 @@
 import SwiftUI
-import TomatoCore
+import MacInstallerCore
 
 struct RootView: View {
     @Environment(InstallerModel.self) private var model
@@ -40,9 +40,12 @@ private struct HeaderView: View {
                 .resizable()
                 .frame(width: 60, height: 60)
                 .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
-            Text("Tomato-Installer")
+            Text("MeduPro Mac-Installer")
                 .font(.system(size: 24, weight: .bold, design: .rounded))
-            Text("tomedo® und Arzeko vom eigenen Server installieren")
+            Text("für tomedo®")
+                .font(.title3.weight(.medium))
+                .foregroundStyle(Color.brand)
+            Text("tomedo und Arzeko vom Server der Praxis installieren")
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }
@@ -63,9 +66,12 @@ private struct FooterView: View {
             }
             .font(.caption)
             .foregroundStyle(.secondary)
-            Text("tomedo® ist eine Marke der zollsoft GmbH. Tomato-Installer ist ein unabhängiges Projekt. Version \(Brand.version)")
+            Text("tomedo® ist eine Marke der zollsoft GmbH. Der MeduPro Mac-Installer ist ein unabhängiges Projekt. Version \(Brand.version)")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 32)
         }
     }
 }
@@ -85,6 +91,7 @@ struct PrimaryButton: View {
                 .padding(.vertical, 4)
         }
         .buttonStyle(.borderedProminent)
+        .tint(.brandFill)
         .controlSize(.large)
         .keyboardShortcut(.defaultAction)
         .disabled(!isEnabled)

@@ -1,8 +1,8 @@
 #!/bin/bash
-# Baut Tomato-Installer.app (Universal: Apple Silicon + Intel), signiert ad-hoc
+# Baut „MeduPro Mac-Installer.app“ (Universal: Apple Silicon + Intel), signiert ad-hoc
 # und erzeugt Zip und DMG zum Verteilen.
 #
-#   scripts/build-app.sh            → dist/Tomato-Installer.app, .zip, .dmg
+#   scripts/build-app.sh            → dist/MeduPro Mac-Installer.app, MeduPro-Mac-Installer-<Version>.zip, .dmg
 #
 # Ohne Apple-Developer-ID: Ad-hoc-Signatur ist auf Apple Silicon Pflicht, damit die
 # App überhaupt startet. Gatekeeper fragt beim ersten Öffnen trotzdem nach (siehe README).
@@ -14,20 +14,20 @@ cd "$ROOT"
 VERSION="$(tr -d '[:space:]' < VERSION)"
 BUILD="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
 DIST="$ROOT/dist"
-APP="$DIST/Tomato-Installer.app"
-NAME="Tomato-Installer-$VERSION"
+APP="$DIST/MeduPro Mac-Installer.app"
+NAME="MeduPro-Mac-Installer-$VERSION"
 
 echo "▸ Tests"
 swift test --quiet
 
 echo "▸ Kompilieren (arm64 + x86_64)"
 swift build -c release --arch arm64 --arch x86_64 --quiet
-BIN="$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/TomatoInstaller"
+BIN="$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/MacInstaller"
 
 echo "▸ App-Paket"
 rm -rf "$APP" "$DIST/$NAME.zip" "$DIST/$NAME.dmg"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp "$BIN" "$APP/Contents/MacOS/TomatoInstaller"
+cp "$BIN" "$APP/Contents/MacOS/MacInstaller"
 sed -e "s/__VERSION__/$VERSION/" -e "s/__BUILD__/$BUILD/" Resources/Info.plist > "$APP/Contents/Info.plist"
 plutil -lint "$APP/Contents/Info.plist" >/dev/null
 
@@ -38,7 +38,7 @@ for s in 16 32 128 256 512; do
     sips -z $((s * 2)) $((s * 2)) Resources/AppIcon-1024.png --out "$ICONSET/icon_${s}x${s}@2x.png" >/dev/null
 done
 iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
-cp LICENSE NOTICE "$APP/Contents/Resources/"
+cp LICENSE "$APP/Contents/Resources/"
 
 echo "▸ Ad-hoc-Signatur"
 codesign --force --sign - --options runtime --timestamp=none "$APP"
@@ -49,7 +49,7 @@ ditto -c -k --keepParent "$APP" "$DIST/$NAME.zip"
 STAGE="$(mktemp -d)"
 cp -R "$APP" "$STAGE/"
 cp README.md "$STAGE/Bitte lesen.md"
-hdiutil create -quiet -volname "Tomato-Installer $VERSION" -srcfolder "$STAGE" -format UDZO -ov "$DIST/$NAME.dmg"
+hdiutil create -quiet -volname "MeduPro Mac-Installer $VERSION" -srcfolder "$STAGE" -format UDZO -ov "$DIST/$NAME.dmg"
 rm -rf "$STAGE" "$(dirname "$ICONSET")"
 
 (cd "$DIST" && shasum -a 256 "$NAME.zip" "$NAME.dmg" > "$NAME.sha256")

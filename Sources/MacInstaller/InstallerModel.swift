@@ -1,6 +1,6 @@
 import AppKit
 import Observation
-import TomatoCore
+import MacInstallerCore
 
 /// Zustand der App: Eingaben, Serverprüfung und Ablauf der Installation.
 @MainActor @Observable
@@ -55,9 +55,9 @@ final class InstallerModel {
         static let dock = "addToDock"
     }
 
-    /// Vorführmodus für Bildschirmfotos (`TOMATO_DEMO=1`): Beispielserver, keine Netzabfragen,
+    /// Vorführmodus für Bildschirmfotos (`MACINSTALLER_DEMO=1`): Beispielserver, keine Netzabfragen,
     /// Eingaben landen in einem eigenen, beim Start geleerten Einstellungsbereich.
-    private let isDemo = ProcessInfo.processInfo.environment["TOMATO_DEMO"] == "1"
+    private let isDemo = ProcessInfo.processInfo.environment["MACINSTALLER_DEMO"] == "1"
 
     init(defaults: UserDefaults = .standard) {
         let defaults = isDemo ? Self.demoDefaults() : defaults
@@ -74,7 +74,7 @@ final class InstallerModel {
     }
 
     private static func demoDefaults() -> UserDefaults {
-        let suite = "de.medupro.tomato-installer.demo"
+        let suite = "de.medupro.mac-installer.demo"
         UserDefaults.standard.removePersistentDomain(forName: suite)
         return UserDefaults(suiteName: suite)!
     }
@@ -114,9 +114,9 @@ final class InstallerModel {
         }
     }
 
-    /// Für Tests außerhalb des Praxisnetzes: `TOMATO_EXTRA_NETWORKS=192.168.10.0/24`.
+    /// Für Tests außerhalb des Praxisnetzes: `MACINSTALLER_EXTRA_NETWORKS=192.168.10.0/24`.
     private static func extraNetworks() -> [LocalNetwork] {
-        let value = ProcessInfo.processInfo.environment["TOMATO_EXTRA_NETWORKS"] ?? ""
+        let value = ProcessInfo.processInfo.environment["MACINSTALLER_EXTRA_NETWORKS"] ?? ""
         return value.split(separator: ",").compactMap { entry in
             let parts = entry.split(separator: "/")
             let octets = parts.first?.split(separator: ".").compactMap { UInt32($0) } ?? []
@@ -248,7 +248,7 @@ final class InstallerModel {
         let os = ProcessInfo.processInfo.operatingSystemVersionString
         let lines = [
             "Hallo MeduPro-Support,", "",
-            "beim Tomato-Installer ist ein Fehler aufgetreten:", error, "",
+            "beim MeduPro Mac-Installer ist ein Fehler aufgetreten:", error, "",
             "Version: \(Brand.version)",
             "macOS: \(os) (\(Architecture.current.rawValue))",
             "Server: \(parsedServer?.baseURL.absoluteString ?? serverInput)",

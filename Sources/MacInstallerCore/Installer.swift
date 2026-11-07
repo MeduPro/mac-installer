@@ -50,7 +50,7 @@ public struct Installer: Sendable {
     let installation: AppInstallation
     let home: URL
     let downloader = Downloader()
-    let log = Logger(subsystem: "de.medupro.tomato-installer", category: "install")
+    let log = Logger(subsystem: "de.medupro.mac-installer", category: "install")
 
     public init(plan: InstallPlan, home: URL = FileManager.default.homeDirectoryForCurrentUser) {
         self.plan = plan
@@ -108,7 +108,7 @@ public struct Installer: Sendable {
             do {
                 switch product {
                 case .tomedo: try TomedoConfiguration.setServer(plan.server)
-                case .arzeko: try ArzekoSettings(server: plan.server).write(home: home)
+                case .arzeko: try ArzekoConnection(server: plan.server).write(home: home)
                 }
             } catch {
                 report(.configure(product), .failed(error.localizedDescription))

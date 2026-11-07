@@ -1,4 +1,5 @@
-// Zeichnet das App-Symbol (1024×1024 PNG): Tomate mit Download-Pfeil auf hellem Grund.
+// Zeichnet das App-Symbol (1024×1024 PNG): weißer Bildschirm mit Download-Pfeil auf einer
+// Kachel in MeduPro-Violett (#7038d8).
 // Aufruf: swift scripts/make-icon.swift <ausgabe.png>
 import AppKit
 
@@ -12,14 +13,17 @@ let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { _
     func color(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ a: CGFloat = 1) -> CGColor {
         CGColor(colorSpace: space, components: [r, g, b, a])!
     }
+    func hex(_ value: Int, _ a: CGFloat = 1) -> CGColor {
+        color(CGFloat((value >> 16) & 0xFF) / 255, CGFloat((value >> 8) & 0xFF) / 255, CGFloat(value & 0xFF) / 255, a)
+    }
 
-    // Grundfläche im macOS-Raster (824 pt Kachel, 100 pt Rand) mit weichem Schatten.
+    // Kachel im macOS-Raster (824 pt, 100 pt Rand) mit weichem Schatten und violettem Verlauf.
     let tile = CGRect(x: 100, y: 100, width: 824, height: 824)
     let tilePath = CGPath(roundedRect: tile, cornerWidth: 185, cornerHeight: 185, transform: nil)
     ctx.saveGState()
     ctx.setShadow(offset: CGSize(width: 0, height: -12), blur: 28, color: color(0, 0, 0, 0.28))
     ctx.addPath(tilePath)
-    ctx.setFillColor(color(1, 1, 1))
+    ctx.setFillColor(hex(0x7038D8))
     ctx.fillPath()
     ctx.restoreGState()
 
@@ -27,75 +31,61 @@ let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { _
     ctx.addPath(tilePath)
     ctx.clip()
     let background = CGGradient(colorsSpace: space,
-                                colors: [color(1.00, 0.97, 0.93), color(0.98, 0.89, 0.83)] as CFArray,
-                                locations: [0, 1])!
+                                colors: [hex(0x8B5CF0), hex(0x7038D8), hex(0x5527AE)] as CFArray,
+                                locations: [0, 0.5, 1])!
     ctx.drawLinearGradient(background, start: CGPoint(x: 512, y: 924), end: CGPoint(x: 512, y: 100), options: [])
     ctx.restoreGState()
 
-    // Tomate: leicht gestauchter Kreis mit Kugel-Verlauf.
-    let body = CGRect(x: 232, y: 212, width: 560, height: 500)
+    // Bildschirm: weißes Gehäuse, Standfuß, Anzeige in hellem Violett.
+    let white = color(1, 1, 1)
+    let display = CGRect(x: 222, y: 370, width: 580, height: 400)
+    // Gehäuse, Hals und Fuß als eine Form, damit der Schatten nur außen fällt.
+    let monitor = CGMutablePath()
+    monitor.addPath(CGPath(roundedRect: display, cornerWidth: 44, cornerHeight: 44, transform: nil))
+    monitor.move(to: CGPoint(x: 462, y: 380))
+    monitor.addLine(to: CGPoint(x: 444, y: 262))
+    monitor.addLine(to: CGPoint(x: 580, y: 262))
+    monitor.addLine(to: CGPoint(x: 562, y: 380))
+    monitor.closeSubpath()
+    monitor.addPath(CGPath(roundedRect: CGRect(x: 372, y: 232, width: 280, height: 44),
+                           cornerWidth: 22, cornerHeight: 22, transform: nil))
     ctx.saveGState()
-    ctx.setShadow(offset: CGSize(width: 0, height: -14), blur: 30, color: color(0.55, 0.08, 0.04, 0.35))
-    ctx.addEllipse(in: body)
-    ctx.setFillColor(color(0.85, 0.22, 0.16))
-    ctx.fillPath()
+    ctx.beginTransparencyLayer(auxiliaryInfo: nil)
+    ctx.setShadow(offset: CGSize(width: 0, height: -14), blur: 30, color: hex(0x2A0F66, 0.45))
+    ctx.beginTransparencyLayer(auxiliaryInfo: nil)
+    ctx.setShadow(offset: .zero, blur: 0, color: nil)
+    ctx.addPath(monitor)
+    ctx.setFillColor(white)
+    ctx.fillPath(using: .winding)
+    ctx.endTransparencyLayer()
+    ctx.endTransparencyLayer()
     ctx.restoreGState()
 
+    let screen = display.insetBy(dx: 30, dy: 30)
     ctx.saveGState()
-    ctx.addEllipse(in: body)
+    ctx.addPath(CGPath(roundedRect: screen, cornerWidth: 20, cornerHeight: 20, transform: nil))
     ctx.clip()
-    let shine = CGGradient(colorsSpace: space,
-                           colors: [color(1.00, 0.45, 0.33), color(0.90, 0.25, 0.18), color(0.70, 0.13, 0.10)] as CFArray,
-                           locations: [0, 0.55, 1])!
-    ctx.drawRadialGradient(shine, startCenter: CGPoint(x: 420, y: 560), startRadius: 0,
-                           endCenter: CGPoint(x: 512, y: 462), endRadius: 330, options: [.drawsBeforeStartLocation, .drawsAfterEndLocation])
-    // Glanzlicht
-    ctx.setFillColor(color(1, 1, 1, 0.28))
-    ctx.fillEllipse(in: CGRect(x: 320, y: 545, width: 150, height: 85))
+    let glass = CGGradient(colorsSpace: space,
+                           colors: [hex(0xF1EAFF), hex(0xDCCBFF)] as CFArray, locations: [0, 1])!
+    ctx.drawLinearGradient(glass, start: CGPoint(x: 512, y: screen.maxY), end: CGPoint(x: 512, y: screen.minY), options: [])
     ctx.restoreGState()
 
-    // Kelchblätter: fünf spitze Blätter um den Stiel.
-    let center = CGPoint(x: 512, y: 690)
-    let leaves = CGMutablePath()
-    for i in 0..<5 {
-        let angle = CGFloat(i) / 5 * 2 * .pi + .pi / 2
-        let tip = CGPoint(x: center.x + cos(angle) * 150, y: center.y + sin(angle) * 62)
-        let left = CGPoint(x: center.x + cos(angle - 0.55) * 46, y: center.y + sin(angle - 0.55) * 30)
-        let right = CGPoint(x: center.x + cos(angle + 0.55) * 46, y: center.y + sin(angle + 0.55) * 30)
-        leaves.move(to: center)
-        leaves.addQuadCurve(to: tip, control: left)
-        leaves.addQuadCurve(to: center, control: right)
-    }
-    ctx.addPath(leaves)
-    ctx.setFillColor(color(0.20, 0.58, 0.27))
-    ctx.fillPath()
-    // Stiel
-    let stem = CGMutablePath()
-    stem.move(to: CGPoint(x: 498, y: 700))
-    stem.addQuadCurve(to: CGPoint(x: 548, y: 790), control: CGPoint(x: 500, y: 770))
-    ctx.addPath(stem)
-    ctx.setStrokeColor(color(0.16, 0.48, 0.22))
-    ctx.setLineWidth(26)
-    ctx.setLineCap(.round)
-    ctx.strokePath()
-
-    // Download-Pfeil in Weiß.
+    // Download-Pfeil mit Ablage-Linie in MeduPro-Violett.
     let arrow = CGMutablePath()
-    arrow.move(to: CGPoint(x: 512, y: 590))
-    arrow.addLine(to: CGPoint(x: 512, y: 340))
-    arrow.move(to: CGPoint(x: 412, y: 440))
-    arrow.addLine(to: CGPoint(x: 512, y: 340))
-    arrow.addLine(to: CGPoint(x: 612, y: 440))
+    arrow.move(to: CGPoint(x: 512, y: 690))
+    arrow.addLine(to: CGPoint(x: 512, y: 478))
+    arrow.move(to: CGPoint(x: 428, y: 562))
+    arrow.addLine(to: CGPoint(x: 512, y: 478))
+    arrow.addLine(to: CGPoint(x: 596, y: 562))
     ctx.addPath(arrow)
-    ctx.setStrokeColor(color(1, 1, 1, 0.96))
-    ctx.setLineWidth(52)
+    ctx.setStrokeColor(hex(0x7038D8))
+    ctx.setLineWidth(46)
     ctx.setLineCap(.round)
     ctx.setLineJoin(.round)
     ctx.strokePath()
-    // Ablage-Linie
-    ctx.move(to: CGPoint(x: 400, y: 285))
-    ctx.addLine(to: CGPoint(x: 624, y: 285))
-    ctx.setLineWidth(40)
+    ctx.move(to: CGPoint(x: 418, y: 432))
+    ctx.addLine(to: CGPoint(x: 606, y: 432))
+    ctx.setLineWidth(34)
     ctx.strokePath()
     return true
 }

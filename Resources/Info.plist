@@ -5,17 +5,17 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>de</string>
     <key>CFBundleExecutable</key>
-    <string>TomatoInstaller</string>
+    <string>MacInstaller</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
-    <string>de.medupro.tomato-installer</string>
+    <string>de.medupro.mac-installer</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>Tomato-Installer</string>
+    <string>MeduPro Mac-Installer</string>
     <key>CFBundleDisplayName</key>
-    <string>Tomato-Installer</string>
+    <string>MeduPro Mac-Installer</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -31,7 +31,7 @@
     <key>NSSupportsAutomaticTermination</key>
     <false/>
     <key>NSLocalNetworkUsageDescription</key>
-    <string>Tomato-Installer lädt tomedo und Arzeko von deinem tomedo-Server im Praxisnetz.</string>
+    <string>Der MeduPro Mac-Installer sucht den tomedo-Server im Praxisnetz und lädt tomedo und Arzeko von dort.</string>
     <key>NSHumanReadableCopyright</key>
     <string>© 2026 MeduPro · medupro.de · support@medupro.de</string>
 </dict>

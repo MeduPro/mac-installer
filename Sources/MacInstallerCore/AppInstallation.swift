@@ -1,7 +1,8 @@
 import Foundation
 
-/// Entpacken und Ablegen einer App in `~/Applications` – tomedo lässt sich nicht
-/// in `/Applications` betreiben, darum (wie bei tomi) im Benutzerordner.
+/// Entpacken und Ablegen einer App in `~/Applications`, dem Programme-Ordner des
+/// Benutzers: Er ist ohne Administratorpasswort beschreibbar, und tomedo kann sich dort
+/// selbst aktualisieren.
 public struct AppInstallation: Sendable {
     public let applicationsFolder: URL
 

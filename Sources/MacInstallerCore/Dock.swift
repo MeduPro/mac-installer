@@ -5,9 +5,13 @@ public enum Dock {
     static var domain: CFString { "com.apple.dock" as CFString }
     static var key: CFString { "persistent-apps" as CFString }
 
-    /// Eintrag in `persistent-apps`, wie ihn das Dock selbst anlegt.
+    /// Eintrag in `persistent-apps` mit den Feldern, die auch die Einträge des Docks selbst
+    /// tragen: `tile-type` `file-tile` und die Datei-URL mit `_CFURLStringType` 15.
     static func tile(for app: URL) -> [String: Any] {
-        ["tile-data": ["file-data": ["_CFURLString": app.absoluteString, "_CFURLStringType": 15]]]
+        [
+            "tile-type": "file-tile",
+            "tile-data": ["file-data": ["_CFURLString": app.absoluteString, "_CFURLStringType": 15]],
+        ]
     }
 
     static func contains(_ app: URL, in tiles: [[String: Any]]) -> Bool {

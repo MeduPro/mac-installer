@@ -1,5 +1,5 @@
 import SwiftUI
-import TomatoCore
+import MacInstallerCore
 
 struct SetupView: View {
     @Environment(InstallerModel.self) private var model
@@ -111,7 +111,7 @@ private struct ServerRow: View {
             HStack(spacing: 12) {
                 Image(systemName: "server.rack")
                     .font(.title3)
-                    .foregroundStyle(isSelected ? Color.tomato : .secondary)
+                    .foregroundStyle(isSelected ? Color.brand : .secondary)
                     .frame(width: 26)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(server.hostName ?? server.address.host).font(.body.weight(.medium))
@@ -120,7 +120,7 @@ private struct ServerRow: View {
                 Spacer()
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    .foregroundStyle(isSelected ? Color.tomato : Color.secondary.opacity(0.5))
+                    .foregroundStyle(isSelected ? Color.brand : Color.secondary.opacity(0.5))
                     .contentTransition(.symbolEffect(.replace))
             }
             .contentShape(Rectangle())
@@ -184,11 +184,11 @@ private struct ChoiceCard: View {
                 HStack {
                     Image(systemName: symbol)
                         .font(.title2)
-                        .foregroundStyle(isSelected ? Color.tomato : .secondary)
+                        .foregroundStyle(isSelected ? Color.brand : .secondary)
                     Spacer()
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                         .font(.title3)
-                        .foregroundStyle(isSelected ? Color.tomato : Color.secondary.opacity(0.5))
+                        .foregroundStyle(isSelected ? Color.brand : Color.secondary.opacity(0.5))
                         .contentTransition(.symbolEffect(.replace))
                 }
                 Text(title).font(.headline)
@@ -198,11 +198,11 @@ private struct ChoiceCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(isSelected ? Color.tomato.opacity(0.10) : Color.primary.opacity(0.03))
+                    .fill(isSelected ? Color.brand.opacity(0.10) : Color.primary.opacity(0.03))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(isSelected ? Color.tomato : Color.primary.opacity(0.12),
+                    .strokeBorder(isSelected ? Color.brand : Color.primary.opacity(0.12),
                                   lineWidth: isSelected ? 2 : 1)
             )
             .contentShape(Rectangle())

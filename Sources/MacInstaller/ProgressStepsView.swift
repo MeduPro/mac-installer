@@ -1,5 +1,5 @@
 import SwiftUI
-import TomatoCore
+import MacInstallerCore
 
 struct ProgressStepsView: View {
     @Environment(InstallerModel.self) private var model
@@ -19,7 +19,7 @@ struct ProgressStepsView: View {
                         } icon: {
                             Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
                         }
-                        Link(destination: Brand.supportMail(subject: "Tomato-Installer: Fehler",
+                        Link(destination: Brand.supportMail(subject: "MeduPro Mac-Installer: Fehler",
                                                             body: model.supportReport(error: message))) {
                             Label("Support kontaktieren (\(Brand.supportAddress))", systemImage: "envelope")
                         }

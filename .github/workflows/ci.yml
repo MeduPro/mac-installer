@@ -13,5 +13,5 @@ jobs:
         run: scripts/build-app.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: Tomato-Installer
+          name: MeduPro-Mac-Installer
           path: dist/*.dmg

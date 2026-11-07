@@ -2,18 +2,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "TomatoInstaller",
+    name: "MacInstaller",
     defaultLocalization: "de",
     platforms: [.macOS(.v14)],
     products: [
-        .executable(name: "TomatoInstaller", targets: ["TomatoInstaller"]),
-        .library(name: "TomatoCore", targets: ["TomatoCore"]),
+        .executable(name: "MacInstaller", targets: ["MacInstaller"]),
+        .library(name: "MacInstallerCore", targets: ["MacInstallerCore"]),
     ],
     targets: [
         // Installationslogik ohne UI – vollständig testbar.
-        .target(name: "TomatoCore"),
-        // SwiftUI-Oberfläche; scripts/build-app.sh packt sie in Tomato-Installer.app.
-        .executableTarget(name: "TomatoInstaller", dependencies: ["TomatoCore"]),
-        .testTarget(name: "TomatoCoreTests", dependencies: ["TomatoCore"]),
+        .target(name: "MacInstallerCore"),
+        // SwiftUI-Oberfläche; scripts/build-app.sh packt sie in „MeduPro Mac-Installer.app“.
+        .executableTarget(name: "MacInstaller", dependencies: ["MacInstallerCore"]),
+        .testTarget(name: "MacInstallerCoreTests", dependencies: ["MacInstallerCore"]),
     ]
 )

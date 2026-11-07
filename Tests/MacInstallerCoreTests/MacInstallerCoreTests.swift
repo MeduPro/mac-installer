@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import TomatoCore
+@testable import MacInstallerCore
 
 @Suite("Serveradresse")
 struct ServerAddressTests {
@@ -56,7 +56,7 @@ struct TomedoServerTests {
          "name":"1.171.0","notes":"Aarch: arm","pub_date":null,"sha512":"94f3ab","filesize":101627742}
         """#
         var release = try JSONDecoder().decode(ArzekoRelease.self, from: Data(json.utf8))
-        release.url = try release.url.replacingHost(with: server.address)
+        release.url = try server.address.resolve(release.url)
         #expect(release.url.absoluteString
                 == "http://192.168.1.10:8080/resteasy/tomedo_live/filebyname/serverinternalzip/arzeko/Arzeko-1.171.0-mac-arm.zip")
         #expect(release.name == "1.171.0")
@@ -73,29 +73,57 @@ struct TomedoServerTests {
 
 @Suite("Konfiguration")
 struct ConfigurationTests {
-    @Test func arzekoSettingsMatchTomi() throws {
-        let settings = ArzekoSettings(server: try ServerAddress.parse("10.0.0.5:8080/tomedo_live/"))
-        let object = try JSONSerialization.jsonObject(with: settings.jsonData()) as! [String: Any]
+    @Test("Neue Arzeko-Einstellungen enthalten nur die Verbindung, wie Arzeko sie bildet")
+    func arzekoConnectionOnly() throws {
+        let connection = ArzekoConnection(server: try ServerAddress.parse("10.0.0.5:8080/tomedo_live/"))
+        let object = try JSONSerialization.jsonObject(with: connection.jsonData()) as! [String: Any]
+        #expect(Set(object.keys) == ["protocol", "ipAddress", "httpPort", "basePath"])
         #expect(object["protocol"] as? String == "http")
         #expect(object["ipAddress"] as? String == "10.0.0.5")
         #expect(object["httpPort"] as? Int == 8080)
         #expect(object["basePath"] as? String == "tomedo_live")
-        #expect(object["autoUpdatePath"] as? String == "arzeko/latestmac?version=")
-        #expect((object["calendarOptions"] as? [String: Any])?["minTime"] as? String == "06:00:00")
     }
 
-    @Test func arzekoSettingsWrittenToHome() throws {
+    @Test("https setzt httpsPort")
+    func arzekoConnectionHTTPS() throws {
+        let connection = ArzekoConnection(server: try ServerAddress.parse("https://tomedo.praxis.de:8443"))
+        let object = try JSONSerialization.jsonObject(with: connection.jsonData()) as! [String: Any]
+        #expect(object["httpsPort"] as? Int == 8443)
+        #expect(object["httpPort"] == nil)
+    }
+
+    @Test("Vorhandene Einstellungen bleiben, nur der Server ändert sich")
+    func arzekoConnectionKeepsSettings() throws {
         let home = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: home) }
-        try ArzekoSettings(server: ServerAddress(host: "a")).write(home: home)
-        try ArzekoSettings(server: ServerAddress(host: "b")).write(home: home)
-        let data = try Data(contentsOf: ArzekoSettings.configFile(home: home))
-        #expect(String(decoding: data, as: UTF8.self).contains(#""ipAddress" : "b""#))
+        let file = ArzekoConnection.configFile(home: home)
+        try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let before = #"{"protocol":"http","ipAddress":"a","httpPort":8080,"basePath":"tomedo_live","logLevel":"debug","calendarOptions":{"minTime":"07:00:00"}}"#
+        try Data(before.utf8).write(to: file)
+
+        try ArzekoConnection(server: ServerAddress(host: "b", port: 9090)).write(home: home)
+        let object = try JSONSerialization.jsonObject(with: Data(contentsOf: file)) as! [String: Any]
+        #expect(object["ipAddress"] as? String == "b")
+        #expect(object["httpPort"] as? Int == 9090)
+        #expect(object["logLevel"] as? String == "debug")
+        #expect((object["calendarOptions"] as? [String: Any])?["minTime"] as? String == "07:00:00")
+    }
+
+    @Test("Unlesbare Datei wird ersetzt")
+    func arzekoConnectionReplacesBrokenFile() throws {
+        let home = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: home) }
+        let file = ArzekoConnection.configFile(home: home)
+        try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data("kein json".utf8).write(to: file)
+        try ArzekoConnection(server: ServerAddress(host: "c")).write(home: home)
+        #expect(String(decoding: try Data(contentsOf: file), as: UTF8.self).contains(#""ipAddress" : "c""#))
     }
 
     @Test func dockTileDetection() {
         let app = URL(filePath: "/Users/x/Applications/tomedo.app", directoryHint: .isDirectory)
         let tiles = [Dock.tile(for: app)]
+        #expect(tiles[0]["tile-type"] as? String == "file-tile")
         #expect(Dock.contains(app, in: tiles))
         #expect(!Dock.contains(URL(filePath: "/Users/x/Applications/Arzeko.app"), in: tiles))
         #expect((tiles[0]["tile-data"] as? [String: Any]).flatMap { $0["file-data"] as? [String: Any] }?["_CFURLString"] as? String
@@ -180,10 +208,10 @@ struct DiscoveryTests {
 }
 
 /// Echttest gegen einen tomedo-Server – installiert nichts.
-/// Start: `TOMATO_TEST_SERVER=192.168.1.10 swift test`
-@Suite("Echter tomedo-Server", .enabled(if: ProcessInfo.processInfo.environment["TOMATO_TEST_SERVER"] != nil))
+/// Start: `MACINSTALLER_TEST_SERVER=192.168.1.10 swift test`
+@Suite("Echter tomedo-Server", .enabled(if: ProcessInfo.processInfo.environment["MACINSTALLER_TEST_SERVER"] != nil))
 struct LiveServerTests {
-    let server = TomedoServer(address: try! ServerAddress.parse(ProcessInfo.processInfo.environment["TOMATO_TEST_SERVER"] ?? "x"))
+    let server = TomedoServer(address: try! ServerAddress.parse(ProcessInfo.processInfo.environment["MACINSTALLER_TEST_SERVER"] ?? "x"))
 
     @Test func tomedoReachable() async {
         guard case .reachable(let size) = await server.check() else {
@@ -197,7 +225,7 @@ struct LiveServerTests {
     @Test func discoveryFindsServer() async throws {
         let host = server.address.host
         let parts = host.split(separator: ".").compactMap { UInt32($0) }
-        try #require(parts.count == 4, "TOMATO_TEST_SERVER muss eine IPv4-Adresse sein")
+        try #require(parts.count == 4, "MACINSTALLER_TEST_SERVER muss eine IPv4-Adresse sein")
         let ip = parts.reduce(0) { $0 << 8 | $1 }
         // Eigene Adresse im Netz simulieren (.0 ist nie ein Host), damit der Server selbst geprüft wird.
         let network = LocalNetwork(address: ip & 0xFFFF_FF00, prefixLength: 24)
@@ -217,11 +245,11 @@ struct LiveServerTests {
 
     /// Lädt wirklich herunter (einige hundert MB) und installiert in einen Wegwerf-Ordner.
     /// Nur Arzeko über den Installer, weil tomedo die echten Einstellungen beschreiben würde.
-    /// Start zusätzlich mit `TOMATO_TEST_INSTALL=1`.
-    @Test(.enabled(if: ProcessInfo.processInfo.environment["TOMATO_TEST_INSTALL"] == "1"))
+    /// Start zusätzlich mit `MACINSTALLER_TEST_INSTALL=1`.
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["MACINSTALLER_TEST_INSTALL"] == "1"))
     func fullInstallIntoTemporaryHome() async throws {
         let fm = FileManager.default
-        let home = fm.temporaryDirectory.appending(path: "tomato-e2e-\(UUID().uuidString)")
+        let home = fm.temporaryDirectory.appending(path: "macinstaller-e2e-\(UUID().uuidString)")
         try fm.createDirectory(at: home, withIntermediateDirectories: true)
         defer { try? fm.removeItem(at: home) }
 
@@ -229,7 +257,7 @@ struct LiveServerTests {
         let installed = try await Installer(plan: plan, home: home).run { _, _ in }
         let arzeko = try #require(installed[.arzeko])
         #expect(fm.fileExists(atPath: arzeko.appending(path: "Contents/Info.plist").path(percentEncoded: false)))
-        #expect(fm.fileExists(atPath: ArzekoSettings.configFile(home: home).path(percentEncoded: false)))
+        #expect(fm.fileExists(atPath: ArzekoConnection.configFile(home: home).path(percentEncoded: false)))
 
         let archive = try await Downloader().download(server.tomedoArchiveURL) { _ in }
         defer { try? fm.removeItem(at: archive) }

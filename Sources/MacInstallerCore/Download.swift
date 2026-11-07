@@ -40,8 +40,8 @@ public struct Downloader: Sendable {
         progress: @escaping @Sendable (DownloadProgress) -> Void
     ) async throws -> URL {
         var request = URLRequest(url: url, timeoutInterval: 60)
-        // tomedo-Server liefern das Archiv sonst gzip-komprimiert und deutlich langsamer
-        // aus (siehe tomi bzw. forum.tomedo.de, „Downloads um 500 % beschleunigen“).
+        // Ohne diese Angabe komprimiert der tomedo-Server das Archiv während der Übertragung
+        // (Content-Encoding: gzip, ohne Content-Length); so kommt es mit Größe und schneller.
         request.setValue("identity", forHTTPHeaderField: "Accept-Encoding")
 
         let delegate = ProgressDelegate(expectedSize: expectedSize, progress: progress)
@@ -62,7 +62,7 @@ public struct Downloader: Sendable {
         }
         // Die von URLSession gelieferte Datei wird beim Rücksprung gelöscht – also sichern.
         let kept = FileManager.default.temporaryDirectory
-            .appending(path: "TomatoInstaller-\(UUID().uuidString)-\(url.lastPathComponent)")
+            .appending(path: "MacInstaller-\(UUID().uuidString)-\(url.lastPathComponent)")
         try FileManager.default.moveItem(at: tempURL, to: kept)
         return kept
     }

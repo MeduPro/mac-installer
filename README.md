@@ -3,17 +3,17 @@
 </p>
 
 <p align="center">
-  <img src="Resources/AppIcon-1024.png" width="112" alt="Tomato-Installer Symbol">
+  <img src="Resources/AppIcon-1024.png" width="112" alt="Symbol des MeduPro Mac-Installers">
 </p>
 
-<h1 align="center">Tomato-Installer</h1>
+<h1 align="center">MeduPro Mac-Installer für tomedo®</h1>
 
 <p align="center">
   <b>Installiert tomedo® und Arzeko auf einem Mac direkt vom tomedo-Server der Praxis.</b>
 </p>
 
 <p align="center">
-  <a href="https://medupro.de/tomato-installer/"><img alt="Download auf medupro.de" src="https://img.shields.io/badge/Download-medupro.de-6D3FD9?style=for-the-badge"></a>
+  <a href="https://medupro.de/tomedo-mac-installer/"><img alt="Download auf medupro.de" src="https://img.shields.io/badge/Download-medupro.de-6D3FD9?style=for-the-badge"></a>
 </p>
 
 <p align="center">
@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <a href="https://medupro.de/tomato-installer/">Webseite</a> ·
+  <a href="https://medupro.de/tomedo-mac-installer/">Webseite</a> ·
   <a href="mailto:support@medupro.de">Support</a> ·
   <a href="#installation">Installation</a> ·
   <a href="#benutzung">Benutzung</a> ·
@@ -36,7 +36,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
-    <img src="docs/screenshot-light.png" width="440" alt="Tomato-Installer mit zwei gefundenen tomedo-Servern">
+    <img src="docs/screenshot-light.png" width="440" alt="MeduPro Mac-Installer mit zwei gefundenen tomedo-Servern">
   </picture>
 </p>
 
@@ -55,7 +55,7 @@ Danach muss tomedo an seinen Platz und die Serveradresse eingetragen werden. Arz
 beim ersten Start ebenfalls nach der Serveradresse
 ([Handbuch](https://support.tomedo.de/handbuch/arzeko/allgemeines/tomedo-einbinden/)).
 
-Tomato-Installer nimmt den dritten Weg und erledigt den Rest gleich mit:
+Der MeduPro Mac-Installer nimmt den dritten Weg und erledigt den Rest gleich mit:
 
 - sucht im Praxisnetz nach tomedo-Servern und zeigt sie in einer Liste
 - lädt tomedo und auf Wunsch Arzeko vom gewählten Server, also die Version, die dort läuft
@@ -76,18 +76,18 @@ tomedo-Server. Updates holt sich tomedo danach wie gewohnt selbst.
 
 ## Installation
 
-1. **Tomato-Installer** kostenlos auf **[medupro.de/tomato-installer](https://medupro.de/tomato-installer/)** herunterladen und das DMG öffnen.
-2. **Tomato-Installer** doppelklicken. Die App kann direkt aus dem DMG laufen.
+1. Den **MeduPro Mac-Installer** kostenlos auf **[medupro.de/tomedo-mac-installer](https://medupro.de/tomedo-mac-installer/)** herunterladen und das DMG öffnen.
+2. **MeduPro Mac-Installer** doppelklicken. Die App kann direkt aus dem DMG laufen.
 3. Beim ersten Öffnen meldet macOS, dass die App nicht überprüft werden konnte. Sie ist
    nicht bei Apple notarisiert, sondern nur ad-hoc signiert. So gibst du sie einmalig frei:
    - Meldung mit **Fertig** schließen.
    - **Systemeinstellungen › Datenschutz & Sicherheit** öffnen und ganz nach unten scrollen.
-   - Bei „Tomato-Installer wurde blockiert“ auf **Dennoch öffnen** klicken und bestätigen.
+   - Bei „MeduPro Mac-Installer wurde blockiert“ auf **Dennoch öffnen** klicken und bestätigen.
 4. Fragt macOS nach dem **lokalen Netzwerk**, bitte **Erlauben**. Sonst findet die App
    den tomedo-Server nicht.
 
 > [!TIP]
-> Prüfsumme kontrollieren: `shasum -a 256 Tomato-Installer-*.dmg` und mit der
+> Prüfsumme kontrollieren: `shasum -a 256 MeduPro-Mac-Installer-*.dmg` und mit der
 > `.sha256`-Datei vergleichen.
 
 ## Benutzung
@@ -117,7 +117,7 @@ deren Konto erneut starten.
 | Server für tomedo | `defaults read com.zollsoft.tomedo-macOS ZS_ServerAdress` |
 | Server für Arzeko | `~/Library/Application Support/Arzeko/usersetting.json` |
 | Dock | `com.apple.dock persistent-apps` (vorhandene Einträge bleiben) |
-| Eigene Einstellungen | `~/Library/Preferences/de.medupro.tomato-installer.plist` |
+| Eigene Einstellungen | `~/Library/Preferences/de.medupro.mac-installer.plist` |
 
 </details>
 
@@ -131,7 +131,7 @@ deren Konto erneut starten.
   Wenn nicht, ist der Server von diesem Mac aus nicht erreichbar.
 - **„liefert kein tomedo aus (HTTP 404)“:** Port oder Pfad stimmen nicht.
 - **Neu installieren:** `~/Applications/tomedo.app` in den Papierkorb legen und erneut starten.
-- **Protokoll:** Konsole.app öffnen und nach `de.medupro.tomato-installer` filtern.
+- **Protokoll:** Konsole.app öffnen und nach `de.medupro.mac-installer` filtern.
 
 Hilfe gibt es unter **[support@medupro.de](mailto:support@medupro.de)**. Im Fehlerfall füllt
 der Knopf **Support kontaktieren** die Mail schon mit den nötigen Angaben.
@@ -140,20 +140,20 @@ der Knopf **Support kontaktieren** die Mail schon mit den nötigen Angaben.
 
 ```bash
 swift test                                              # Tests
-TOMATO_TEST_SERVER=192.168.1.10 swift test              # zusätzlich gegen echten Server (installiert nichts)
-TOMATO_TEST_SERVER=… TOMATO_TEST_INSTALL=1 swift test   # Ende-zu-Ende in Wegwerf-Ordner
-swift run TomatoInstaller                               # App ohne Bundle starten
-TOMATO_EXTRA_NETWORKS=192.168.10.0/24 swift run TomatoInstaller   # zusätzlich ein entferntes Netz durchsuchen
-TOMATO_DEMO=1 TOMATO_APPEARANCE=dark swift run TomatoInstaller    # Vorführmodus für Bildschirmfotos
+MACINSTALLER_TEST_SERVER=192.168.1.10 swift test              # zusätzlich gegen echten Server (installiert nichts)
+MACINSTALLER_TEST_SERVER=… MACINSTALLER_TEST_INSTALL=1 swift test   # Ende-zu-Ende in Wegwerf-Ordner
+swift run MacInstaller                               # App ohne Bundle starten
+MACINSTALLER_EXTRA_NETWORKS=192.168.10.0/24 swift run MacInstaller   # zusätzlich ein entferntes Netz durchsuchen
+MACINSTALLER_DEMO=1 MACINSTALLER_APPEARANCE=dark swift run MacInstaller    # Vorführmodus für Bildschirmfotos
 scripts/build-app.sh                                    # dist/: .app, .zip, .dmg, .sha256
 swift scripts/make-icon.swift Resources/AppIcon-1024.png   # Symbol neu zeichnen
 ```
 
 | Ordner | Inhalt |
 |---|---|
-| `Sources/TomatoCore` | Installationslogik ohne Oberfläche: Adressen, Serversuche, Download, Entpacken, Konfiguration, Dock |
-| `Sources/TomatoInstaller` | SwiftUI-Oberfläche |
-| `Tests/TomatoCoreTests` | Swift Testing, inklusive optionaler Echttests |
+| `Sources/MacInstallerCore` | Installationslogik ohne Oberfläche: Adressen, Serversuche, Download, Entpacken, Konfiguration, Dock |
+| `Sources/MacInstaller` | SwiftUI-Oberfläche |
+| `Tests/MacInstallerCoreTests` | Swift Testing, inklusive optionaler Echttests |
 | `scripts/` | Build, Signatur, DMG und App-Symbol |
 
 ## Lizenz und Marken
@@ -161,15 +161,15 @@ swift scripts/make-icon.swift Resources/AppIcon-1024.png   # Symbol neu zeichnen
 Quelltext einsehbar, **alle Rechte vorbehalten**. Die veröffentlichte App ist kostenlos
 nutzbar, auch in Praxen. Weitergabe und Änderungen nur mit Zustimmung, siehe [LICENSE](LICENSE).
 
-Teile der Logik stammen aus [tomi](https://github.com/bjoernalbers/tomi) von Björn Albers
-(MIT-Lizenz), siehe [NOTICE](NOTICE). Danke!
+Woher die Angaben über tomedo, Arzeko und das Dock stammen, steht in
+[docs/quellen.md](docs/quellen.md).
 
-tomedo® ist eine eingetragene Marke der zollsoft GmbH. Tomato-Installer ist ein
+tomedo® ist eine eingetragene Marke der zollsoft GmbH. Der MeduPro Mac-Installer ist ein
 unabhängiges Projekt von MeduPro und steht in keiner Verbindung zur zollsoft GmbH.
 
 ---
 
 <p align="center">
   <a href="https://medupro.de"><img src="docs/medupro-logo.png" width="120" alt="MeduPro"></a><br>
-  <sub>Ein kostenloses Angebot von <a href="https://medupro.de">MeduPro</a> · <a href="mailto:support@medupro.de">support@medupro.de</a> · <a href="https://github.com/MeduPro">github.com/MeduPro</a></sub>
+  <sub>Ein kostenloses Angebot von <a href="https://medupro.de">MeduPro</a> · <a href="mailto:support@medupro.de">support@medupro.de</a> · <a href="https://github.com/MeduPro/mac-installer">github.com/MeduPro/mac-installer</a></sub>
 </p>

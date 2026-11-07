@@ -22,8 +22,9 @@ public enum Architecture: String, Sendable {
     }
 }
 
-/// URLs und Abfragen am tomedo-Server – dieselben Endpunkte, die tomedo und
-/// Arzeko selbst für ihre Updates nutzen (übernommen aus tomi, MIT-Lizenz).
+/// URLs und Abfragen am tomedo-Server. Den Archivpfad enthält die tomedo-App selbst
+/// (`filebyname/serverinternal/`, `tomedo.app.tar`), die Arzeko-Abfrage baut Arzeko für
+/// seine Updates genauso (`app.updater.mjs`, `get-aarch.mjs`). Quellen: docs/quellen.md.
 public struct TomedoServer: Sendable {
     public let address: ServerAddress
     let session: URLSession
@@ -38,7 +39,8 @@ public struct TomedoServer: Sendable {
         address.baseURL.appending(path: "filebyname/serverinternal/tomedo.app.tar")
     }
 
-    /// Liefert JSON mit der Download-URL der neuesten Arzeko-Version.
+    /// Liefert JSON mit der Download-URL der neuesten Arzeko-Version. Mit Version 0.0.0
+    /// gilt jede Version auf dem Server als neuer; `aarch` ist `arm` oder `intel`.
     public func arzekoLatestURL(for arch: Architecture) -> URL {
         address.baseURL
             .appending(path: "arzeko/latestmac")
@@ -81,7 +83,7 @@ public struct TomedoServer: Sendable {
             throw InstallError.server("Arzeko-Version konnte nicht abgefragt werden (HTTP \((response as? HTTPURLResponse)?.statusCode ?? 0)).")
         }
         var release = try JSONDecoder().decode(ArzekoRelease.self, from: data)
-        release.url = try release.url.replacingHost(with: address)
+        release.url = try address.resolve(release.url)
         return release
     }
 }
@@ -95,17 +97,24 @@ public struct ArzekoRelease: Decodable, Sendable, Equatable {
     public var filesize: Int64?
 }
 
-extension URL {
-    /// Der Server meldet als Download-Host oft `127.0.0.1` oder einen internen Namen.
-    /// Wie tomi werden Schema, Host und Port durch die bekannte Serveradresse ersetzt.
-    func replacingHost(with address: ServerAddress) throws -> URL {
-        guard var c = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
-            throw InstallError.server("Ungültige Download-Adresse: \(absoluteString)")
+extension ServerAddress {
+    /// Der Server baut die Download-Adresse aus dem Host-Header der Anfrage. Hinter einer
+    /// Weiterleitung (Tunnel, Proxy) zeigt sie dann z. B. auf `127.0.0.1:9901`. Pfad und
+    /// Abfrage der gemeldeten Adresse bleiben, Schema, Host und Port kommen von hier.
+    func resolve(_ reported: URL) throws -> URL {
+        var parts = URLComponents()
+        parts.scheme = scheme
+        parts.host = host
+        parts.port = port
+        guard let original = URLComponents(url: reported, resolvingAgainstBaseURL: false),
+              !original.percentEncodedPath.isEmpty else {
+            throw InstallError.server("Ungültige Download-Adresse: \(reported.absoluteString)")
         }
-        c.scheme = address.scheme
-        c.host = address.host
-        c.port = address.port
-        guard let url = c.url else { throw InstallError.server("Ungültige Download-Adresse: \(absoluteString)") }
+        parts.percentEncodedPath = original.percentEncodedPath
+        parts.percentEncodedQuery = original.percentEncodedQuery
+        guard let url = parts.url else {
+            throw InstallError.server("Ungültige Download-Adresse: \(reported.absoluteString)")
+        }
         return url
     }
 }
