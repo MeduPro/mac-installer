@@ -1,0 +1,41 @@
+Tomato-Installer – Lizenz
+Copyright © 2026 MeduPro (medupro.de). Alle Rechte vorbehalten.
+
+1. Quelltext einsehbar
+   Der Quelltext ist öffentlich einsehbar, damit jede Praxis nachvollziehen kann,
+   was die Software auf ihren Rechnern tut. Die Veröffentlichung ist keine
+   Open-Source-Lizenz und räumt keine Nutzungsrechte am Quelltext ein, soweit
+   sie nicht unten ausdrücklich genannt sind.
+
+2. Kostenlose Nutzung der App
+   Die von MeduPro veröffentlichte, unveränderte App „Tomato-Installer“ darf
+   kostenlos genutzt werden, auch in Arztpraxen und anderen gewerblichen
+   Einrichtungen, auf beliebig vielen eigenen Rechnern.
+
+3. Nicht gestattet ohne vorherige schriftliche Zustimmung von MeduPro
+   a) die Weitergabe, Veröffentlichung oder der Verkauf der App oder des
+      Quelltextes (auch in veränderter Form), außer innerhalb der eigenen Praxis;
+   b) das Verändern, Übersetzen oder Weiterentwickeln des Quelltextes sowie die
+      Verbreitung abgeleiteter Werke;
+   c) die Nutzung in einem Produkt oder Dienst, der gegen Entgelt angeboten wird;
+   d) das Entfernen oder Verändern von Urheber-, Marken- und Lizenzhinweisen.
+
+4. Beiträge
+   Fehlermeldungen und Vorschläge sind willkommen (support@medupro.de).
+   Codebeiträge werden nur mit einer Beitragsvereinbarung angenommen.
+
+5. Haftung
+   Die App wird unentgeltlich überlassen. MeduPro haftet nur für Vorsatz und
+   grobe Fahrlässigkeit sowie nach dem Produkthaftungsgesetz und bei Verletzung
+   von Leben, Körper oder Gesundheit. Im Übrigen ist die Haftung ausgeschlossen.
+   Vor dem Einsatz ist die Eignung für die eigene Praxisumgebung selbst zu prüfen.
+
+6. Fremde Bestandteile und Marken
+   Teile der Installationslogik stammen aus „tomi“ von Björn Albers und stehen
+   unter der MIT-Lizenz; deren Bedingungen gelten für diese Teile fort (siehe
+   NOTICE). tomedo® ist eine eingetragene Marke der zollsoft GmbH. Tomato-Installer
+   ist ein unabhängiges Projekt und steht in keiner Verbindung zur zollsoft GmbH.
+
+7. Es gilt deutsches Recht.
+
+Kontakt: MeduPro · https://medupro.de · support@medupro.de

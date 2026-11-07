@@ -1,0 +1,17 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tests
+        run: swift test
+      - name: App bauen
+        run: scripts/build-app.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Tomato-Installer
+          path: dist/*.dmg
