@@ -42,7 +42,7 @@ private struct HeaderView: View {
                 .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
             Text("Tomato-Installer")
                 .font(.system(size: 24, weight: .bold, design: .rounded))
-            Text("tomedo® und Arzeko in einem Schritt einrichten")
+            Text("tomedo® und Arzeko vom eigenen Server installieren")
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }

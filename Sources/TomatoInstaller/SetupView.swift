@@ -37,11 +37,11 @@ struct SetupView: View {
                 Section("Was soll installiert werden?") {
                     HStack(spacing: 12) {
                         ChoiceCard(title: "Nur tomedo",
-                                   subtitle: "Die Praxissoftware",
+                                   subtitle: "Praxissoftware",
                                    symbol: "cross.case.fill",
                                    isSelected: !model.withArzeko) { model.withArzeko = false }
                         ChoiceCard(title: "tomedo + Arzeko",
-                                   subtitle: "Mit Dienst- und Terminplanung",
+                                   subtitle: "Mit Arbeitszeit und Dienstplan",
                                    symbol: "calendar.badge.clock",
                                    isSelected: model.withArzeko) { model.withArzeko = true }
                     }

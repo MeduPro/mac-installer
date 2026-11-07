@@ -14,7 +14,7 @@ struct FinishedView: View {
                 .symbolEffect(.bounce, value: appeared)
             Text(model.installed.count > 1 ? "tomedo und Arzeko sind bereit" : "tomedo ist bereit")
                 .font(.title2.bold())
-            Text("Beim ersten Start lädt tomedo noch Aktualisierungen vom Server, das kann ein paar Minuten dauern.")
+            Text("Beim ersten Start von tomedo unter Einstellungen › Arbeitsplatz › Grundeinstellungen den Arbeitsplatz auswählen oder anlegen.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: 400)

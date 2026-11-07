@@ -9,8 +9,7 @@
 <h1 align="center">Tomato-Installer</h1>
 
 <p align="center">
-  <b>tomedo® und Arzeko auf dem Mac in einem Schritt einrichten.</b><br>
-  Server finden, herunterladen, verbinden, ins Dock legen. Fertig.
+  <b>Installiert tomedo® und Arzeko auf einem Mac direkt vom tomedo-Server der Praxis.</b>
 </p>
 
 <p align="center">
@@ -43,25 +42,32 @@
 
 ---
 
-## Warum?
+## Wozu
 
-Ein neuer Mac in der Praxis braucht tomedo. Von Hand heißt das: Ordner anlegen,
-tomedo.app irgendwo herunterladen, Serveradresse eintippen, ins Dock ziehen, auf das
-erste Update warten. Für Arzeko dasselbe noch einmal.
+Für einen neuen Arbeitsplatz gibt es bisher drei übliche Wege, den tomedo-Client auf den Mac zu bekommen:
 
-**Tomato-Installer macht das mit einem Klick.**
+- den Ordner mit tomedo (und Arzeko) von einem vorhandenen Mac kopieren,
+- den Client in den Server-Tools unter *Aktionen → Update* herunterladen,
+- `http://<server>:8080/tomedo_live/filebyname/serverinternal/tomedo.app.tar` im Browser
+  aufrufen und das Archiv entpacken.
 
-| | |
-|---|---|
-| 🔎 **Findet eure Server selbst** | Sucht beim Start im Praxisnetz und zeigt jeden tomedo-Server als Liste zum Anklicken |
-| ⬇️ **Immer die richtige Version** | Lädt tomedo und auf Wunsch Arzeko direkt von eurem Server, also genau die Version, die eure Praxis nutzt |
-| 🔌 **Sofort verbunden** | Trägt die Serveradresse ein, tomedo fragt beim ersten Start nicht mehr danach. Arzeko bekommt seine Verbindung gleich mit |
-| 📂 **Am richtigen Ort** | Legt die Apps in `~/Applications` ab, dort wo tomedo hingehört, und auf Wunsch ins Dock |
-| 🔐 **Ohne Admin-Passwort** | Installiert für den angemeldeten Benutzer, kein Terminal, keine Systemrechte |
-| 🛡️ **Sorgfältig** | Prüft Arzeko per SHA-512, legt Apps erst vollständig entpackt ab, lässt Vorhandenes in Ruhe |
-| 🙈 **Keine Daten an uns** | Spricht ausschließlich mit eurem tomedo-Server, kein Tracking, keine Telemetrie |
+Danach muss tomedo an seinen Platz und die Serveradresse eingetragen werden. Arzeko fragt
+beim ersten Start ebenfalls nach der Serveradresse
+([Handbuch](https://support.tomedo.de/handbuch/arzeko/allgemeines/tomedo-einbinden/)).
 
-Updates übernehmen tomedo und Arzeko danach wie gewohnt selbst.
+Tomato-Installer nimmt den dritten Weg und erledigt den Rest gleich mit:
+
+- sucht im Praxisnetz nach tomedo-Servern und zeigt sie in einer Liste
+- lädt tomedo und auf Wunsch Arzeko vom gewählten Server, also die Version, die dort läuft
+- legt beide in `~/Applications` des angemeldeten Benutzers ab
+- trägt die Serveradresse für tomedo und Arzeko ein
+- legt beide auf Wunsch ins Dock
+- braucht kein Administratorpasswort
+- überspringt Apps, die schon installiert sind
+- prüft den Arzeko-Download per SHA-512
+
+Die App überträgt keine Daten an MeduPro oder Dritte, sie spricht nur mit dem gewählten
+tomedo-Server. Updates holt sich tomedo danach wie gewohnt selbst.
 
 ## Voraussetzungen
 
@@ -91,7 +97,10 @@ Updates übernehmen tomedo und Arzeko danach wie gewohnt selbst.
    weil er über VPN oder auf einem anderen Port läuft, die Adresse eingeben:
    `192.168.1.10`, `server.praxis:8080/tomedo_live/` oder `https://tomedo.praxis.de:8443`.
 2. **Nur tomedo** oder **tomedo + Arzeko** wählen.
-3. **Installieren** und danach mit **tomedo öffnen** direkt loslegen.
+3. **Installieren**, danach **tomedo öffnen**.
+4. In tomedo unter *Einstellungen → Arbeitsplatz → Grundeinstellungen* den Arbeitsplatz
+   auswählen oder anlegen ([Handbuch](https://support.tomedo.de/handbuch/tomedo/praxisverwaltung/arbeitsplatz/)).
+   Arzeko startet aus tomedo über *Aktion → Arzeko – Arbeitszeitkonto*.
 
 Die App installiert für den **angemeldeten Benutzer**. Für weitere Benutzer einfach unter
 deren Konto erneut starten.
@@ -117,7 +126,9 @@ deren Konto erneut starten.
 - **Kein Server in der Liste:** Ist der Mac im Praxisnetz? Wurde der Zugriff auf das
   lokale Netzwerk erlaubt (Systemeinstellungen › Datenschutz & Sicherheit › Lokales
   Netzwerk)? Server per VPN bitte von Hand eingeben.
-- **„Server nicht erreichbar“:** Lässt sich `http://<server>:8080/tomedo_live/` im Browser öffnen?
+- **„Server nicht erreichbar“:** Startet ein Download, wenn man
+  `http://<server>:8080/tomedo_live/filebyname/serverinternal/tomedo.app.tar` im Browser aufruft?
+  Wenn nicht, ist der Server von diesem Mac aus nicht erreichbar.
 - **„liefert kein tomedo aus (HTTP 404)“:** Port oder Pfad stimmen nicht.
 - **Neu installieren:** `~/Applications/tomedo.app` in den Papierkorb legen und erneut starten.
 - **Protokoll:** Konsole.app öffnen und nach `de.medupro.tomato-installer` filtern.
