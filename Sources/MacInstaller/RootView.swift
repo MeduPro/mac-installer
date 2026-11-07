@@ -28,7 +28,7 @@ struct RootView: View {
                 .padding(.bottom, 14)
         }
         .frame(width: 560)
-        .frame(minHeight: 760)
+        .frame(minHeight: 830)
         .animation(.smooth(duration: 0.35), value: model.phase)
     }
 }

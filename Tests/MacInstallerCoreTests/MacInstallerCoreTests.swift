@@ -158,6 +158,37 @@ struct InstallationTests {
         #expect(throws: InstallError.self) { try installation.install(.tomedo, from: archive) }
     }
 
+    @Test("Eigener Installationsort: ohne .localized, Vorgabe erkannt")
+    func customFolder() throws {
+        let fm = FileManager.default
+        let work = fm.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? fm.removeItem(at: work) }
+        let source = work.appending(path: "src")
+        try fm.createDirectory(at: source.appending(path: "tomedo.app/Contents"), withIntermediateDirectories: true)
+        try Data("x".utf8).write(to: source.appending(path: "tomedo.app/Contents/Info.plist"))
+        let archive = work.appending(path: "tomedo.app.tar")
+        try AppInstallation.run("/usr/bin/tar", ["-c", "-f", archive.path(percentEncoded: false),
+                                                 "-C", source.path(percentEncoded: false), "tomedo.app"],
+                                failure: { InstallError.archive($0) })
+        let home = work.appending(path: "home")
+        let folder = work.appending(path: "Praxis-Apps", directoryHint: .isDirectory)
+
+        #expect(AppInstallation(home: home).isUserApplicationsFolder)
+        #expect(AppInstallation(applicationsFolder: home.appending(path: "Applications/"), home: home).isUserApplicationsFolder)
+        let custom = AppInstallation(applicationsFolder: folder, home: home)
+        #expect(!custom.isUserApplicationsFolder)
+        #expect(custom.isWritable)
+        let target = try custom.install(.tomedo, from: archive)
+        #expect(target.deletingLastPathComponent().lastPathComponent == "Praxis-Apps")
+        #expect(!fm.fileExists(atPath: folder.appending(path: ".localized").path(percentEncoded: false)))
+    }
+
+    @Test("Ordner ohne Schreibrecht wird abgelehnt")
+    func readOnlyFolder() {
+        let installation = AppInstallation(applicationsFolder: URL(filePath: "/System/Applications/MacInstallerTest"))
+        #expect(!installation.isWritable)
+    }
+
     @Test func planSteps() {
         let plan = InstallPlan(server: ServerAddress(host: "s"), products: [.tomedo, .arzeko], addToDock: true)
         #expect(plan.steps.count == 7)
@@ -263,5 +294,28 @@ struct LiveServerTests {
         defer { try? fm.removeItem(at: archive) }
         let tomedo = try AppInstallation(home: home).install(.tomedo, from: archive)
         #expect(fm.fileExists(atPath: tomedo.appending(path: "Contents/MacOS").path(percentEncoded: false)))
+    }
+}
+
+/// Lädt eine größere Datei von einem lokalen Webserver und prüft, dass unterwegs Fortschritt ankommt.
+/// Aufruf: `MACINSTALLER_TEST_DOWNLOAD_URL=http://127.0.0.1:<port>/datei swift test --filter Fortschritt`
+@Suite("Fortschritt", .enabled(if: ProcessInfo.processInfo.environment["MACINSTALLER_TEST_DOWNLOAD_URL"] != nil))
+struct ProgressTests {
+    final class Collector: @unchecked Sendable {
+        let lock = NSLock()
+        var events: [DownloadProgress] = []
+        func add(_ p: DownloadProgress) { lock.lock(); events.append(p); lock.unlock() }
+    }
+
+    @Test func downloadReportsProgressWithSize() async throws {
+        let url = URL(string: ProcessInfo.processInfo.environment["MACINSTALLER_TEST_DOWNLOAD_URL"]!)!
+        let collector = Collector()
+        let file = try await Downloader().download(url) { collector.add($0) }
+        defer { try? FileManager.default.removeItem(at: file) }
+        let size = try FileManager.default.attributesOfItem(atPath: file.path)[.size] as! Int64
+        #expect(collector.events.count >= 2)
+        #expect(collector.events.last?.expected == size)
+        #expect(collector.events.last?.received == size)
+        #expect(collector.events.contains { ($0.fraction ?? 0) > 0 && ($0.fraction ?? 1) < 1 })
     }
 }

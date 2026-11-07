@@ -59,7 +59,9 @@ Der MeduPro Mac-Installer nimmt den dritten Weg und erledigt den Rest gleich mit
 
 - sucht im Praxisnetz nach tomedo-Servern und zeigt sie in einer Liste
 - lädt tomedo und auf Wunsch Arzeko vom gewählten Server, also die Version, die dort läuft
-- legt beide in `~/Applications` des angemeldeten Benutzers ab
+- legt beide in den Ordner „Programme“ im Benutzerordner (`/Users/<Name>/Applications`), auf Wunsch
+  in einen anderen Ordner
+- zeigt beim Download Prozent, Größe, Geschwindigkeit und Restzeit
 - trägt die Serveradresse für tomedo und Arzeko ein
 - legt beide auf Wunsch ins Dock
 - braucht kein Administratorpasswort
@@ -97,8 +99,11 @@ tomedo-Server. Updates holt sich tomedo danach wie gewohnt selbst.
    weil er über VPN oder auf einem anderen Port läuft, die Adresse eingeben:
    `192.168.1.10`, `server.praxis:8080/tomedo_live/` oder `https://tomedo.praxis.de:8443`.
 2. **Nur tomedo** oder **tomedo + Arzeko** wählen.
-3. **Installieren**, danach **tomedo öffnen**.
-4. In tomedo unter *Einstellungen → Arbeitsplatz → Grundeinstellungen* den Arbeitsplatz
+3. Installationsort prüfen: Vorgabe ist der Ordner „Programme“ in deinem Benutzerordner
+   (`/Users/<Name>/Applications`), nicht der allgemeine Programme-Ordner des Macs. Dafür braucht es
+   kein Administratorpasswort. Mit **Ändern …** lässt sich ein anderer Ordner wählen.
+4. **Installieren**, danach **tomedo öffnen**.
+5. In tomedo unter *Einstellungen → Arbeitsplatz → Grundeinstellungen* den Arbeitsplatz
    auswählen oder anlegen ([Handbuch](https://support.tomedo.de/handbuch/tomedo/praxisverwaltung/arbeitsplatz/)).
    Arzeko startet aus tomedo über *Aktion → Arzeko – Arbeitszeitkonto*.
 
@@ -113,7 +118,7 @@ deren Konto erneut starten.
 | Server suchen | HEAD-Anfrage an jede Adresse im eigenen privaten Netz (höchstens /22, sonst /24), Port 8080 |
 | tomedo laden | `http://<server>:8080/tomedo_live/filebyname/serverinternal/tomedo.app.tar` |
 | Arzeko-Version abfragen | `…/arzeko/latestmac?version=0.0.0&aarch=arm\|intel` |
-| Apps ablegen | `~/Applications/tomedo.app`, `~/Applications/Arzeko.app` |
+| Apps ablegen | `~/Applications/tomedo.app`, `~/Applications/Arzeko.app` (oder der gewählte Ordner) |
 | Server für tomedo | `defaults read com.zollsoft.tomedo-macOS ZS_ServerAdress` |
 | Server für Arzeko | `~/Library/Application Support/Arzeko/usersetting.json` |
 | Dock | `com.apple.dock persistent-apps` (vorhandene Einträge bleiben) |
@@ -130,7 +135,7 @@ deren Konto erneut starten.
   `http://<server>:8080/tomedo_live/filebyname/serverinternal/tomedo.app.tar` im Browser aufruft?
   Wenn nicht, ist der Server von diesem Mac aus nicht erreichbar.
 - **„liefert kein tomedo aus (HTTP 404)“:** Port oder Pfad stimmen nicht.
-- **Neu installieren:** `~/Applications/tomedo.app` in den Papierkorb legen und erneut starten.
+- **Neu installieren:** `tomedo.app` im Installationsort (Vorgabe `~/Applications`) in den Papierkorb legen und erneut starten.
 - **Protokoll:** Konsole.app öffnen und nach `de.medupro.mac-installer` filtern.
 
 Hilfe gibt es unter **[support@medupro.de](mailto:support@medupro.de)**. Im Fehlerfall füllt

@@ -49,6 +49,8 @@ struct SetupView: View {
 
                     Toggle("Im Dock ablegen", isOn: $model.addToDock)
 
+                    InstallFolderRow()
+
                     ForEach(model.products.filter(model.isAlreadyInstalled)) { product in
                         Label("\(product.displayName) ist schon installiert und wird übersprungen.",
                               systemImage: "info.circle")
@@ -62,7 +64,9 @@ struct SetupView: View {
             VStack(spacing: 10) {
                 PrimaryButton(title: "Installieren", systemImage: "arrow.down.circle.fill",
                               isEnabled: model.canInstall) { model.install() }
-                Label("Wird nach \(model.applicationsFolderPath) installiert, ohne Administrator-Passwort. Updates übernimmt tomedo danach selbst.",
+                Label(model.usesUserApplicationsFolder
+                      ? "Ohne Administratorpasswort. Updates übernimmt tomedo danach selbst."
+                      : "Updates übernimmt tomedo danach selbst.",
                       systemImage: "lock.open")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -71,6 +75,52 @@ struct SetupView: View {
             .padding(.horizontal, 32)
         }
         .onAppear { serverFocused = true }
+    }
+}
+
+/// Wohin installiert wird: Vorgabe ist der Programme-Ordner des Benutzers, auf Wunsch ein anderer.
+private struct InstallFolderRow: View {
+    @Environment(InstallerModel.self) private var model
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(model.usesUserApplicationsFolder ? "Installieren in: Programme (Ihr Benutzerordner)" : "Installieren in: eigener Ordner")
+                    Text(model.applicationsFolderPath)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .textSelection(.enabled)
+                }
+                Spacer()
+                if !model.usesUserApplicationsFolder {
+                    Button("Standard") { model.resetFolder() }
+                }
+                Button("Ändern …") { model.chooseFolder() }
+            }
+            hint
+        }
+    }
+
+    @ViewBuilder private var hint: some View {
+        if !model.installation.isWritable {
+            Label("In diesen Ordner darf Ihr Benutzer nicht schreiben. Bitte einen anderen Ordner wählen.",
+                  systemImage: "exclamationmark.triangle.fill")
+                .font(.callout)
+                .foregroundStyle(.red)
+        } else if model.usesUserApplicationsFolder {
+            Text("Nicht der allgemeine Programme-Ordner des Macs, sondern „Programme“ in Ihrem Benutzerordner; dafür braucht es kein Administratorpasswort. Im Finder: Gehe zu › Benutzerordner › Programme.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        } else {
+            Text("tomedo und Arzeko werden hier abgelegt statt im Ordner „Programme“ Ihres Benutzers.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
 

@@ -30,11 +30,14 @@ public struct InstallPlan: Sendable, Equatable {
     public var server: ServerAddress
     public var products: [Product]
     public var addToDock: Bool
+    /// Zielordner der Apps; Vorgabe `~/Applications`.
+    public var applicationsFolder: URL?
 
-    public init(server: ServerAddress, products: [Product], addToDock: Bool) {
+    public init(server: ServerAddress, products: [Product], addToDock: Bool, applicationsFolder: URL? = nil) {
         self.server = server
         self.products = products
         self.addToDock = addToDock
+        self.applicationsFolder = applicationsFolder
     }
 
     public var steps: [InstallStep] {
@@ -55,7 +58,8 @@ public struct Installer: Sendable {
     public init(plan: InstallPlan, home: URL = FileManager.default.homeDirectoryForCurrentUser) {
         self.plan = plan
         self.home = home
-        installation = AppInstallation(home: home)
+        installation = plan.applicationsFolder.map { AppInstallation(applicationsFolder: $0, home: home) }
+            ?? AppInstallation(home: home)
     }
 
     /// - Returns: Orte der installierten bzw. bereits vorhandenen Apps.

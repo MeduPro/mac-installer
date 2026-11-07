@@ -31,6 +31,10 @@ final class InstallerModel {
     }
     var withArzeko: Bool { didSet { defaults.set(withArzeko, forKey: Keys.arzeko) } }
     var addToDock: Bool { didSet { defaults.set(addToDock, forKey: Keys.dock) } }
+    /// Gewählter Installationsort; nil = Vorgabe `~/Applications`.
+    private(set) var customFolder: URL? {
+        didSet { defaults.set(customFolder?.path(percentEncoded: false), forKey: Keys.folder) }
+    }
 
     // MARK: Zustand
 
@@ -47,12 +51,15 @@ final class InstallerModel {
     private let defaults: UserDefaults
     private var checkTask: Task<Void, Never>?
     private var installTask: Task<Void, Never>?
-    private let installation = AppInstallation()
+    var installation: AppInstallation {
+        customFolder.map { AppInstallation(applicationsFolder: $0) } ?? AppInstallation()
+    }
 
     private enum Keys {
         static let server = "server"
         static let arzeko = "withArzeko"
         static let dock = "addToDock"
+        static let folder = "applicationsFolder"
     }
 
     /// Vorführmodus für Bildschirmfotos (`MACINSTALLER_DEMO=1`): Beispielserver, keine Netzabfragen,
@@ -65,6 +72,7 @@ final class InstallerModel {
         serverInput = defaults.string(forKey: Keys.server) ?? ""
         withArzeko = defaults.bool(forKey: Keys.arzeko)
         addToDock = defaults.object(forKey: Keys.dock) as? Bool ?? true
+        customFolder = defaults.string(forKey: Keys.folder).map { URL(filePath: $0, directoryHint: .isDirectory) }
         if isDemo {
             showDemo()
             return
@@ -142,14 +150,44 @@ final class InstallerModel {
     var parsedServer: ServerAddress? { try? ServerAddress.parse(serverInput) }
 
     var canInstall: Bool {
-        if case .reachable = serverCheck, phase == .setup { return true }
+        if case .reachable = serverCheck, phase == .setup, installation.isWritable { return true }
         return false
     }
 
     func isAlreadyInstalled(_ product: Product) -> Bool { installation.isInstalled(product) }
 
+    /// Vollständiger Pfad, damit klar ist, welcher Programme-Ordner gemeint ist.
     var applicationsFolderPath: String {
-        (installation.applicationsFolder.path(percentEncoded: false) as NSString).abbreviatingWithTildeInPath
+        // Im Vorführmodus kein echter Benutzername auf öffentlichen Bildschirmfotos.
+        isDemo ? "/Users/praxis/Applications/" : installation.applicationsFolder.path(percentEncoded: false)
+    }
+
+    var usesUserApplicationsFolder: Bool { installation.isUserApplicationsFolder }
+
+    /// Lässt einen anderen Installationsort wählen.
+    func chooseFolder() {
+        let panel = NSOpenPanel()
+        panel.title = "Installationsort wählen"
+        panel.message = "In welchen Ordner sollen tomedo und Arzeko installiert werden?"
+        panel.prompt = "Hier installieren"
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = installation.applicationsFolder
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        customFolder = AppInstallation(applicationsFolder: url).isUserApplicationsFolder ? nil : url
+    }
+
+    func resetFolder() { customFolder = nil }
+
+    func revealFolder() {
+        let folder = installation.applicationsFolder
+        if FileManager.default.fileExists(atPath: folder.path(percentEncoded: false)) {
+            NSWorkspace.shared.activateFileViewerSelecting([folder])
+        } else {
+            NSWorkspace.shared.open(folder.deletingLastPathComponent())
+        }
     }
 
     // MARK: Serverprüfung
@@ -191,7 +229,8 @@ final class InstallerModel {
 
     func install() {
         guard canInstall, let server = parsedServer else { return }
-        let plan = InstallPlan(server: server, products: products, addToDock: addToDock)
+        let plan = InstallPlan(server: server, products: products, addToDock: addToDock,
+                               applicationsFolder: customFolder)
         steps = plan.steps
         states = Dictionary(uniqueKeysWithValues: steps.map { ($0, .pending) })
         installed = [:]
@@ -215,7 +254,7 @@ final class InstallerModel {
                 continuation.finish()
                 await consumer.value
                 let message = (error as? InstallError) == .cancelled || error is CancellationError
-                    ? "Die Installation wurde abgebrochen."
+                    ? Self.cancelledMessage
                     : error.localizedDescription
                 for (step, state) in states where state == .pending || isRunning(state) {
                     states[step] = isRunning(state) ? .failed("abgebrochen") : .pending
@@ -226,6 +265,14 @@ final class InstallerModel {
     }
 
     func cancel() { installTask?.cancel() }
+
+    static let cancelledMessage = "Die Installation wurde abgebrochen."
+
+    /// Abbruch durch den Benutzer ist kein Fall für den Support.
+    var failedWithError: Bool {
+        if case .failed(let message) = phase { return message != Self.cancelledMessage }
+        return false
+    }
 
     /// Prüft den Server neu und startet die Installation, wenn er erreichbar ist.
     func retry() {

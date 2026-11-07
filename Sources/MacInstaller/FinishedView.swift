@@ -18,6 +18,18 @@ struct FinishedView: View {
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: 400)
+            if let folder = model.installed[.tomedo]?.deletingLastPathComponent() {
+                VStack(spacing: 4) {
+                    Text(model.usesUserApplicationsFolder ? "Installiert in „Programme“ in Ihrem Benutzerordner:" : "Installiert in:")
+                        .font(.callout)
+                    Text(folder.path(percentEncoded: false))
+                        .font(.callout.monospaced())
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 440)
+            }
             Button("Im Finder zeigen") { model.revealApplicationsFolder() }
                 .buttonStyle(.link)
             Spacer()
