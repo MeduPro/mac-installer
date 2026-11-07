@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://medupro.de"><img alt="Download auf medupro.de" src="https://img.shields.io/badge/Download-medupro.de-6D3FD9?style=for-the-badge"></a>
+  <a href="https://medupro.de/tomato-installer/"><img alt="Download auf medupro.de" src="https://img.shields.io/badge/Download-medupro.de-6D3FD9?style=for-the-badge"></a>
 </p>
 
 <p align="center">
@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <a href="https://medupro.de">Webseite</a> ·
+  <a href="https://medupro.de/tomato-installer/">Webseite</a> ·
   <a href="mailto:support@medupro.de">Support</a> ·
   <a href="#installation">Installation</a> ·
   <a href="#benutzung">Benutzung</a> ·
@@ -76,7 +76,7 @@ tomedo-Server. Updates holt sich tomedo danach wie gewohnt selbst.
 
 ## Installation
 
-1. **Tomato-Installer** kostenlos auf **[medupro.de](https://medupro.de)** herunterladen und das DMG öffnen.
+1. **Tomato-Installer** kostenlos auf **[medupro.de/tomato-installer](https://medupro.de/tomato-installer/)** herunterladen und das DMG öffnen.
 2. **Tomato-Installer** doppelklicken. Die App kann direkt aus dem DMG laufen.
 3. Beim ersten Öffnen meldet macOS, dass die App nicht überprüft werden konnte. Sie ist
    nicht bei Apple notarisiert, sondern nur ad-hoc signiert. So gibst du sie einmalig frei:
