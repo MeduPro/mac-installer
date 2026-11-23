@@ -225,6 +225,33 @@ final class InstallerModel {
         }
     }
 
+    // MARK: Selbstaktualisierung
+
+    enum Aktualisierung: Equatable {
+        case keine
+        case laedt(version: String, DownloadProgress?)
+    }
+
+    /// Läuft gerade eine Selbstaktualisierung, deckt die Oberfläche alles andere ab.
+    var aktualisierung: Aktualisierung = .keine
+
+    /// Beim Start: neuere Fassung des Installers holen und mit ihr neu starten.
+    /// Ohne Netz oder bei einem Fehler läuft die bisherige Fassung weiter.
+    func nachUpdateSehen(_ updater: SelbstUpdate) async {
+        guard phase == .setup, updater.moeglich else { return }
+        do {
+            guard let neu = try await updater.pruefen() else { return }
+            aktualisierung = .laedt(version: neu.version, nil)
+            let ergebnis = try await updater.einspielen(neu) { fortschritt in
+                Task { @MainActor in self.aktualisierung = .laedt(version: neu.version, fortschritt) }
+            }
+            if case .neuGestartet = ergebnis { NSApp.terminate(nil) }
+        } catch {
+            InstallLog.schreiben("Selbstaktualisierung fehlgeschlagen, bisherige Fassung läuft weiter: \(error.localizedDescription)")
+            aktualisierung = .keine
+        }
+    }
+
     // MARK: Installation
 
     func install() {
@@ -240,9 +267,20 @@ final class InstallerModel {
         let (events, continuation) = AsyncStream.makeStream(of: (InstallStep, StepState).self)
         let installer = Installer(plan: plan)
 
+        InstallLog.beginn("Server \(server.baseURL.absoluteString) · "
+                          + products.map(\.displayName).joined(separator: ", ")
+                          + (addToDock ? " · Dock" : ""))
+        // Ohne das schläft der Mac während eines langen Downloads ein, und die Verbindung reißt ab.
+        let activity = ProcessInfo.processInfo.beginActivity(
+            options: [.userInitiated, .idleSystemSleepDisabled], reason: "Installation läuft")
+
         installTask = Task {
+            defer { ProcessInfo.processInfo.endActivity(activity) }
             let consumer = Task { @MainActor in
-                for await (step, state) in events { self.states[step] = state }
+                for await (step, state) in events {
+                    self.states[step] = state
+                    if case .failed(let note) = state { InstallLog.schreiben("\(step.title): \(note)") }
+                }
             }
             do {
                 let result = try await installer.run { continuation.yield(($0, $1)) }
@@ -250,6 +288,7 @@ final class InstallerModel {
                 await consumer.value
                 installed = result
                 phase = .finished
+                InstallLog.schreiben("— Installation fertig")
             } catch {
                 continuation.finish()
                 await consumer.value
@@ -260,6 +299,7 @@ final class InstallerModel {
                     states[step] = isRunning(state) ? .failed("abgebrochen") : .pending
                 }
                 phase = .failed(message)
+                InstallLog.schreiben("— Installation fehlgeschlagen: \(message)")
             }
         }
     }

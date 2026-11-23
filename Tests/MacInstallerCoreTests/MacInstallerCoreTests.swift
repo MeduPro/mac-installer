@@ -319,3 +319,88 @@ struct ProgressTests {
         #expect(collector.events.contains { ($0.fraction ?? 0) > 0 && ($0.fraction ?? 1) < 1 })
     }
 }
+
+@Suite("Weiterladen")
+struct ResumeUnitTests {
+    @Test func contentRangeWirdGelesen() throws {
+        let url = URL(string: "http://x/")!
+        let r = HTTPURLResponse(url: url, statusCode: 206, httpVersion: nil,
+                                headerFields: ["Content-Range": "bytes 100-199/1813448192"])!
+        let bereich = try #require(VersuchDelegate.contentRange(r))
+        #expect(bereich.start == 100 && bereich.gesamt == 1_813_448_192)
+        let ohne = HTTPURLResponse(url: url, statusCode: 206, httpVersion: nil, headerFields: [:])!
+        #expect(VersuchDelegate.contentRange(ohne) == nil)
+    }
+
+    @Test func nurNetzwerkfehlerWerdenWiederholt() {
+        #expect(VersuchDelegate.wiederholbar(.networkConnectionLost))
+        #expect(VersuchDelegate.wiederholbar(.timedOut))
+        #expect(!VersuchDelegate.wiederholbar(.badURL))
+        #expect(!VersuchDelegate.wiederholbar(nil))
+    }
+
+    @Test func unerreichbarEndetMitMeldung() async throws {
+        // Nicht erreichbarer Port: Verbindungsfehler, wird wiederholt und endet mit einer klaren Meldung.
+        let downloader = Downloader(maxAttempts: 2, retryDelay: .milliseconds(50), idleTimeout: 2)
+        await #expect(throws: InstallError.self) {
+            _ = try await downloader.download(URL(string: "http://127.0.0.1:9/nichts")!) { _ in }
+        }
+    }
+}
+
+/// Lädt von `scripts/abbruch-server.py`, der die Verbindung zweimal mitten im Download kappt.
+/// Aufruf: `python3 scripts/abbruch-server.py 18555 <datei> &` und
+/// `MACINSTALLER_TEST_ABBRUCH_URL=http://127.0.0.1:18555/x MACINSTALLER_TEST_ABBRUCH_DATEI=<datei> swift test --filter Abbruch`
+@Suite("Abbruch", .enabled(if: ProcessInfo.processInfo.environment["MACINSTALLER_TEST_ABBRUCH_URL"] != nil))
+struct AbortResumeTests {
+    @Test func laedtNachAbbruchWeiter() async throws {
+        let env = ProcessInfo.processInfo.environment
+        let url = URL(string: env["MACINSTALLER_TEST_ABBRUCH_URL"]!)!
+        let quelle = URL(filePath: env["MACINSTALLER_TEST_ABBRUCH_DATEI"]!)
+        let file = try await Downloader(retryDelay: .milliseconds(200)).download(url) { _ in }
+        defer { try? FileManager.default.removeItem(at: file) }
+        #expect(try Downloader.sha512(of: file) == Downloader.sha512(of: quelle))
+    }
+}
+
+@Suite("Selbstaktualisierung")
+struct SelbstUpdateTests {
+    @Test func versionenVergleichen() {
+        #expect(SelbstUpdate.neuer("1.0.3", als: "1.0.2"))
+        #expect(SelbstUpdate.neuer("v1.1", als: "1.0.9"))
+        #expect(SelbstUpdate.neuer("1.0.10", als: "1.0.9"))
+        #expect(!SelbstUpdate.neuer("1.0.2", als: "1.0.2"))
+        #expect(!SelbstUpdate.neuer("1.0.1", als: "1.0.2"))
+        #expect(!SelbstUpdate.neuer("1.0.3", als: "__VERSION__"))
+    }
+
+    @Test func pruefsummeAusShasum() {
+        let text = """
+        e3e2420ab7a91d82edbe7e479f079bf8eb357c62e7b16ec3e38d03e5d0f02025  MeduPro-Mac-Installer-1.0.2.zip
+        3b2a67ff317fa55340032dac2f3158e9411a8f35cdd88e379057356da1b0a631  MeduPro-Mac-Installer-1.0.2.dmg
+        """
+        #expect(GitHubQuelle.summe(fuer: "MeduPro-Mac-Installer-1.0.2.zip", in: text)
+                == "e3e2420ab7a91d82edbe7e479f079bf8eb357c62e7b16ec3e38d03e5d0f02025")
+        #expect(GitHubQuelle.summe(fuer: "andere.zip", in: text) == nil)
+    }
+
+    struct FesteQuelle: UpdateQuelle {
+        let fassung: NeueFassung?
+        func neueste() async throws -> NeueFassung? { fassung }
+    }
+
+    @Test func ohneAppBuendelKeinUpdate() async throws {
+        let neu = NeueFassung(version: "9.9.9", zip: URL(string: "http://127.0.0.1:9/x.zip")!, sha256: nil)
+        let updater = SelbstUpdate(quelle: FesteQuelle(fassung: neu), laufend: "1.0.0",
+                                   app: URL(filePath: "/usr/bin/xctest"))
+        #expect(!updater.moeglich)
+        #expect(try await updater.pruefen() == nil)
+    }
+
+    @Test func nurNeuereFassungWirdGemeldet() async throws {
+        let app = URL(filePath: "/Applications/Beispiel.app")
+        let neu = NeueFassung(version: "1.0.2", zip: URL(string: "http://127.0.0.1:9/x.zip")!, sha256: nil)
+        #expect(try await SelbstUpdate(quelle: FesteQuelle(fassung: neu), laufend: "1.0.2", app: app).pruefen() == nil)
+        #expect(try await SelbstUpdate(quelle: FesteQuelle(fassung: neu), laufend: "1.0.1", app: app).pruefen() == neu)
+    }
+}

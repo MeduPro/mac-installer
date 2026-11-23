@@ -30,6 +30,36 @@ struct RootView: View {
         .frame(width: 560)
         .frame(minHeight: 830)
         .animation(.smooth(duration: 0.35), value: model.phase)
+        .overlay {
+            if case .laedt(let version, let fortschritt) = model.aktualisierung {
+                AktualisierungView(version: version, fortschritt: fortschritt)
+            }
+        }
+        .task { await model.nachUpdateSehen(SelbstUpdate(quelle: GitHubQuelle(repo: "MeduPro/mac-installer"))) }
+    }
+}
+
+/// Deckt das Fenster ab, solange die neue Fassung des Installers geladen wird.
+private struct AktualisierungView: View {
+    let version: String
+    let fortschritt: DownloadProgress?
+
+    var body: some View {
+        ZStack {
+            Rectangle().fill(.regularMaterial)
+            VStack(spacing: 14) {
+                Image(systemName: "arrow.down.circle").font(.system(size: 40)).foregroundStyle(.tint)
+                Text("Neue Version \(version) wird geladen").font(.title3.weight(.semibold))
+                if let anteil = fortschritt?.fraction {
+                    ProgressView(value: anteil).frame(width: 260)
+                } else {
+                    ProgressView().controlSize(.small)
+                }
+                Text("Der Installer startet danach von selbst neu.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            .padding(32)
+        }
     }
 }
 
